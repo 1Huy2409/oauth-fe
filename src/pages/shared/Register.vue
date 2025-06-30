@@ -4,20 +4,111 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   class: { type: null, required: false },
 });
 
-const agreeToTerms = ref(false);
+// Reactive data for form fields
+const router = useRouter();
+const authStore = useAuthStore();
+
+const formData = ref({
+  fullname: '',
+  email: '',
+  username: '',
+  password: '',
+});
+
+const errors = ref({
+  fullname: '',
+  email: '',
+  username: '',
+  password: '',
+  general: '',
+});
+
+
+// computed property
+const isFormValid = computed(() => {
+  return formData.value.fullname.trim() && 
+         formData.value.email.trim() && 
+         formData.value.username.trim() && 
+         formData.value.password.trim() 
+})
+
+// Method to handle form submission
+const clearErrors = () => {
+  errors.value = {
+    fullname: '',
+    email: '',
+    username: '',
+    password: '',
+    general: '',
+  };
+};
+
+const validateForm = () => {
+  clearErrors();
+  let valid = true;
+
+  if (!formData.value.fullname) {
+    errors.value.fullname = 'Full name is required.';
+    valid = false;
+  }
+  if (!formData.value.email) {
+    errors.value.email = 'Email is required.';
+    valid = false;
+  }
+  if (!formData.value.username) {
+    errors.value.username = 'Username is required.';
+    valid = false;
+  }
+  if (!formData.value.password || formData.value.password.length < 5) {
+    errors.value.password = 'Password must be at least 5 characters long.';
+    valid = false;
+  }
+  return valid;
+}
+
+const handleSubmit = async (event) => {
+  if (!validateForm()) return;
+
+  clearErrors();
+
+  try {
+    const result = await authStore.register(formData.value);
+    console.log('Registration result:', result);
+    if (result.success) {
+      router.push('/login');
+      return;
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    errors.value.general = 'Registration failed. Please try again.';
+  }
+}
+
+const handleInputChange = (field) => {
+  // Clear error when user starts typing
+  if (errors.value[field]) {
+    errors.value[field] = ''
+  }
+  if (errors.value.general) {
+    errors.value.general = ''
+  }
+}
+
 </script>
 
 <template>
   <div :class="cn('flex flex-col gap-6', props.class)">
     <Card class="overflow-hidden p-0">
       <CardContent class="grid p-0 md:grid-cols-2">
-        <form class="p-6 md:p-8">
+        <form @submit.prevent="handleSubmit" class="p-6 md:p-8">
           <div class="flex flex-col gap-6">
             <div class="flex flex-col items-center text-center">
               <h1 class="text-2xl font-bold">Create an account</h1>
@@ -30,6 +121,8 @@ const agreeToTerms = ref(false);
               <Label for="name">Full Name</Label>
               <Input
                 id="name"
+                v-model="formData.fullname"
+                @input="handleInputChange('fullname')"
                 type="text"
                 placeholder="Enter your full name"
                 required
@@ -41,6 +134,8 @@ const agreeToTerms = ref(false);
               <Input
                 id="email"
                 type="email"
+                v-model="formData.email"
+                @input="handleInputChange('email')"
                 placeholder="Enter your email"
                 required
               />
@@ -51,6 +146,8 @@ const agreeToTerms = ref(false);
               <Input
                 id="username"
                 type="text"
+                v-model="formData.username"
+                @input="handleInputChange('username')"
                 placeholder="Enter your username"
                 required
               />
@@ -61,6 +158,8 @@ const agreeToTerms = ref(false);
               <Input 
                 id="password" 
                 type="password" 
+                v-model="formData.password"
+                @input="handleInputChange('password')"
                 placeholder="Enter your password" 
                 required 
               />

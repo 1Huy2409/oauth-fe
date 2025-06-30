@@ -32,6 +32,26 @@ export const useAuthStore = defineStore("auth", () => {
       isLoading.value = false;
     }
   }
+
+  async function register(userData) {
+    isLoading.value = true;
+    try {
+      const result = await authService.register(userData);
+      
+      if (result.success && result.data) {
+        const registerData = result.data.metadata
+        accessToken.value = registerData.accessToken;
+        user.value = registerData.user;
+        return { success: true };
+      } else {
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      return { success: false, error: "Registration failed" };
+    } finally {
+      isLoading.value = false;
+    }
+  }
   async function logout() {
     isLoading.value = true;
     try {
@@ -87,6 +107,7 @@ export const useAuthStore = defineStore("auth", () => {
     isAuthenticated,
     // Actions
     login,
+    register,
     logout,
     refreshAccessToken,
     fetchCurrentUser

@@ -132,7 +132,7 @@ const isFormValid = computed(() => {
          !isSubmitting.value
 })
 
-// ===== Methods =====
+// ===== Methods =====!
 const clearErrors = () => {
   errors.value = {
     username: '',
