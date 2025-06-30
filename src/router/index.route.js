@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth.js'
 import Login from '../pages/shared/Login.vue'
 import Register from '../pages/shared/Register.vue'
 import Profile from '../pages/client/Profile.vue'
+import AuthCallback from '../pages/shared/AuthCallback.vue'
 
 const routes = [
   { 
@@ -26,6 +27,11 @@ const routes = [
   {
     path: '/',
     redirect: '/login'
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: AuthCallback
   }
 ]
 
