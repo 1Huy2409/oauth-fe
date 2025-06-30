@@ -27,6 +27,29 @@ export default {
             }
         }
     },
+    async register(credentials) {
+        try {
+            const response = await api.post('/auth/register', credentials)
+            return {
+                success: true,
+                data: response
+            }
+        }
+        catch (error) {
+            let errorMessage = 'Đăng ký thất bại'
+            
+            if (error.response?.message) {
+                errorMessage = error.response.message
+            } else if (error.response?.status === 409) {
+                errorMessage = 'Email hoặc tên đăng nhập đã tồn tại'
+            }
+            
+            return {
+                success: false,
+                error: errorMessage
+            }
+        }
+    },
     async logout() {
         try {
             const response = await api.post('/auth/logout')
