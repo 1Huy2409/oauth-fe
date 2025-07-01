@@ -51,13 +51,13 @@
       const userData = JSON.parse(decodeURIComponent(user))
       
       // Set auth data
-      authStore.accessToken = token
-      authStore.user = {
+      authStore.persistAuthState(token, {
         id: userData.id,
         fullname: userData.fullname,
         email: userData.email,
-        username: userData.username
-      }
+        username: userData.username,
+        role: userData.role
+      })
       
       // Redirect to profile
       setTimeout(() => {

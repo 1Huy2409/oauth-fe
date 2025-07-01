@@ -126,6 +126,7 @@ export const useAuthStore = defineStore("auth", () => {
     refreshAccessToken,
     fetchCurrentUser,
     hasRefreshToken,
-    clearAuthState
+    clearAuthState,
+    persistAuthState
   }
 });

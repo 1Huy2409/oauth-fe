@@ -124,7 +124,7 @@
     <!-- User Detail Modal -->
     <div
       v-if="selectedUser"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      class="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex items-center justify-center p-4"
     >
       <div
         class="bg-white rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
@@ -182,8 +182,8 @@
             </div>
 
             <div class="bg-gray-50 p-3 rounded-lg">
-              <h4 class="text-sm font-medium text-gray-500 mb-1">User ID</h4>
-              <p class="text-gray-900">{{ selectedUser.id }}</p>
+              <h4 class="text-sm font-medium text-gray-500 mb-1">Username</h4>
+              <p class="text-gray-900">{{ selectedUser.username }}</p>
             </div>
 
             <div class="bg-gray-50 p-3 rounded-lg">
@@ -263,7 +263,6 @@ const isLoading = ref(false);
 const error = ref(null);
 const selectedUser = ref(null);
 const userToDelete = ref(null);
-
 // Watch auth state và redirect nếu không authenticated
 watch(
   () => authStore.isAuthenticated,
@@ -335,10 +334,15 @@ const handleDeleteUser = (user) => {
 
 const confirmDelete = async () => {
   // TODO: Implement delete user functionality
-  console.log("Delete user:", userToDelete.value.fullname);
+  console.log("Delete user:", userToDelete.value);
   // You can call delete API here
-  // await userService.deleteUser(userToDelete.value.id)
-  // fetchUsers() // Refresh list
+  const result = await userService.deleteUserById(userToDelete.value._id);
+  if (result.success) {
+    alert(result.message)
+    fetchUsers()
+  } else {
+    alert(result.error)
+  }
   userToDelete.value = null;
 };
 

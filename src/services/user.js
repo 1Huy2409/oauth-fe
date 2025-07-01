@@ -31,4 +31,21 @@ export default {
       };
     }
   },
+  async deleteUserById(id) {
+    try {
+      const response = await api.delete(`/users/${id}`)
+      return {
+        success: true,
+        message: response.message
+      }
+    }
+    catch(error)
+    {
+      let errorMessage = error.response.data.message
+      return {
+        success: false,
+        error: errorMessage
+      }
+    }
+  }
 };

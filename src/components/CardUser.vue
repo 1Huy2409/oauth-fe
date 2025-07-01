@@ -14,9 +14,11 @@
       <div class="flex-1 min-w-0">
         <div class="flex items-center space-x-3 mb-1">
           <!-- Full Name -->
-          <h3 class="text-lg font-semibold text-gray-900 truncate">
-            {{ user.fullname }}
-          </h3>
+          <button @click="$emit('view-profile', user)" class="cursor-pointer hover:underline">
+            <h3 class="text-lg font-semibold text-gray-900 truncate">
+              {{ user.fullname }}
+            </h3>
+          </button>
           <!-- Role Badge -->
           <span :class="getRoleBadgeClass(user.role)" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
             {{ user.role || 'User' }}
@@ -26,10 +28,9 @@
         <div class="flex items-center space-x-4 text-sm text-gray-600">
           <!-- Clickable Username -->
           <button 
-            @click="$emit('view-profile', user)"
-            class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
+            class="text-blue-600  font-medium transition-colors cursor-pointer"
           >
-            @{{ user.username }}
+            Username: {{ user.username }}
           </button>
           
           <!-- Email -->
@@ -39,23 +40,15 @@
             </svg>
             <span class="truncate">{{ user.email }}</span>
           </div>
-          
-          <!-- ID -->
-          <div class="flex items-center space-x-1">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-            <span class="text-gray-500">ID: {{ user.id }}</span>
-          </div>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex-shrink-0 flex items-center space-x-2">
+      <div v-show="isAdmin" class="flex-shrink-0 flex items-center space-x-2">
         <!-- Update Button -->
         <button 
           @click="$emit('update-user', user)"
-          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-1 shadow-sm"
+          class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-1 shadow-sm"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -66,7 +59,7 @@
         <!-- Delete Button -->
         <button 
           @click="$emit('delete-user', user)"
-          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-1 shadow-sm"
+          class="cursor-pointer bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-1 shadow-sm"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -82,15 +75,21 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+const authStore = useAuthStore();
+const loginUser = authStore.user;
 const props = defineProps({
   user: {
     type: Object,
     required: true
   }
 })
-
 const emit = defineEmits(['view-profile', 'update-user', 'delete-user'])
-
+const isAdmin = computed(() => {
+  return loginUser.role === "admin";
+});
+console.log(isAdmin)
 const getInitials = (fullname) => {
   if (!fullname) return '?'
   return fullname
@@ -100,7 +99,6 @@ const getInitials = (fullname) => {
     .toUpperCase()
     .slice(0, 2)
 }
-
 const getRoleBadgeClass = (role) => {
   const roleClasses = {
     'admin': 'bg-red-100 text-red-800',
