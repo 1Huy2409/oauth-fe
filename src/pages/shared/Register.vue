@@ -83,7 +83,7 @@ const handleSubmit = async (event) => {
     const result = await authStore.register(formData.value);
     console.log('Registration result:', result);
     if (result.success) {
-      router.push('/login');
+      router.push('/dashboard');
       return;
     }
   } catch (error) {
@@ -206,7 +206,7 @@ const handleInputChange = (field) => {
             
             <div class="text-center text-sm">
               Already have an account?
-              <a href="/login" class="underline underline-offset-4 hover:text-primary">Sign in</a>
+              <router-link to="/login" class="underline underline-offset-4 hover:text-primary">Sign in</router-link>
             </div>
           </div>
         </form>

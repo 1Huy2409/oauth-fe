@@ -4,6 +4,7 @@ import Login from '../pages/shared/Login.vue'
 import Register from '../pages/shared/Register.vue'
 import Profile from '../pages/client/Profile.vue'
 import AuthCallback from '../pages/shared/AuthCallback.vue'
+import Dashboard from '../pages/shared/Dashboard.vue'
 
 const routes = [
   { 
@@ -25,8 +26,14 @@ const routes = [
     meta: { requiresAuth: true }   
   },
   {
+    path: '/dashboard',
+    name: 'Dashboard', 
+    component: Dashboard,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/',
-    redirect: '/login'
+    redirect: '/dashboard'
   },
   {
     path: '/auth/callback',
@@ -39,25 +46,48 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
+  
   if (to.meta.requiresAuth) {
     if (!authStore.isAuthenticated) {
-      try {
-        await authStore.refreshAccessToken()
-        await authStore.fetchCurrentUser()
-        if (!authStore.isAuthenticated) {
-          return next({ name: 'Login', query: { redirect: to.fullPath } })
+      if (authStore.hasRefreshToken()) {
+        try {
+          await authStore.refreshAccessToken()
+          await authStore.fetchCurrentUser()
+          if (!authStore.isAuthenticated) {
+            return next({ name: 'Login', query: { redirect: to.fullPath } })
+          }
+        } catch (error) {
+          authStore.clearAuthState()
+          return next({ name: 'Login' })
         }
-      } catch (error) {
-        return next({ name: 'Login' })
+      } else {
+        return next({ name: 'Login', query: { redirect: to.fullPath } })
       }
     }
   }
-  // Route chỉ dành cho guest (chưa login)
-  if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    return next({ name: 'Profile' })
+
+  if (to.meta.requiresGuest) {
+    if (authStore.isAuthenticated) {
+      return next({ name: 'Dashboard' })
+    }
+    
+    if (authStore.hasRefreshToken()) {
+      try {
+        await authStore.refreshAccessToken()
+        await authStore.fetchCurrentUser()
+        if (authStore.isAuthenticated) {
+          return next({ name: 'Dashboard' })
+        }
+      } catch (error) {
+        authStore.clearAuthState()
+      }
+    }
   }
+  
   next()
 })
+
 export default router
