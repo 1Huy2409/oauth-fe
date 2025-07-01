@@ -90,8 +90,17 @@ const handleSubmit = async (event) => {
     const result = await authStore.register(formData.value);
     console.log('Registration result:', result);
     if (result.success) {
-      router.push('/dashboard');
+      router.push('/login');
       return;
+    } else if (result.error) {
+      // check email and username have been used
+      if (result.error.toLowerCase().includes('email') && result.error.toLowerCase().includes('exist')) {
+        errors.value.email = 'Email already exists!';
+      } else if (result.error.toLowerCase().includes('username') && result.error.toLowerCase().includes('exist')) {
+        errors.value.username = 'Username already exists!';
+      } else {
+        errors.value.general = result.error;
+      }
     }
   } catch (error) {
     console.error('Registration error:', error);
