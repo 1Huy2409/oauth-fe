@@ -62,6 +62,13 @@ const validateForm = () => {
   if (!formData.value.email) {
     errors.value.email = 'Email is required.';
     valid = false;
+  } else {
+    // Regex kiểm tra email hợp lệ
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.value.email)) {
+      errors.value.email = 'Email is invalid.';
+      valid = false;
+    }
   }
   if (!formData.value.username) {
     errors.value.username = 'Username is required.';
@@ -118,6 +125,7 @@ const handleInputChange = (field) => {
             </div>
             
             <div class="grid gap-3">
+              <!-- Full Name -->
               <Label for="name">Full Name</Label>
               <Input
                 id="name"
@@ -125,11 +133,14 @@ const handleInputChange = (field) => {
                 @input="handleInputChange('fullname')"
                 type="text"
                 placeholder="Enter your full name"
+                :class="{ 'border-red-500': errors.fullname }"
                 required
               />
+              <span v-if="errors.fullname" class="text-red-500 text-sm">{{ errors.fullname }}</span>
             </div>
             
             <div class="grid gap-3">
+              <!-- Email -->
               <Label for="email">Email</Label>
               <Input
                 id="email"
@@ -137,11 +148,14 @@ const handleInputChange = (field) => {
                 v-model="formData.email"
                 @input="handleInputChange('email')"
                 placeholder="Enter your email"
+                :class="{ 'border-red-500': errors.email }"
                 required
               />
+              <span v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</span>
             </div>
 
             <div class="grid gap-3">
+              <!-- Username -->
               <Label for="username">Username</Label>
               <Input
                 id="username"
@@ -149,11 +163,14 @@ const handleInputChange = (field) => {
                 v-model="formData.username"
                 @input="handleInputChange('username')"
                 placeholder="Enter your username"
+                :class="{ 'border-red-500': errors.username }"
                 required
               />
+              <span v-if="errors.username" class="text-red-500 text-sm">{{ errors.username }}</span>
             </div>
 
             <div class="grid gap-3">
+              <!-- Password -->
               <Label for="password">Password</Label>
               <Input 
                 id="password" 
@@ -161,9 +178,11 @@ const handleInputChange = (field) => {
                 v-model="formData.password"
                 @input="handleInputChange('password')"
                 placeholder="Enter your password" 
+                :class="{ 'border-red-500': errors.password }"
                 required 
               />
               <p class="text-sm text-muted-foreground">Minimum 5 characters.</p>
+              <span v-if="errors.password" class="text-red-500 text-sm">{{ errors.password }}</span>
             </div>
             
             
