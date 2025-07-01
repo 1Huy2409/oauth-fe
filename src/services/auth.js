@@ -2,7 +2,6 @@ import api from './api.js'
 
 export default {
     async login(credentials) {
-        console.log('🔐 Login attempt with:', credentials)
         try {
             const response = await api.post('/auth/login', credentials)
             return {
@@ -11,15 +10,8 @@ export default {
             }
         }
         catch (error) {
-            let errorMessage = 'Đăng nhập thất bại'
-            
-            if (error.response?.message) {
-                errorMessage = error.response.message
-            } else if (error.response?.status === 401) {
-                errorMessage = 'Sai tên đăng nhập hoặc mật khẩu'
-            } else if (error.response?.status === 404) {
-                errorMessage = 'Tài khoản không tồn tại'
-            }
+            console.log(error.response.data.message)
+            let errorMessage = error.response.data.message
             
             return {
                 success: false,
@@ -36,13 +28,7 @@ export default {
             }
         }
         catch (error) {
-            let errorMessage = 'Đăng ký thất bại'
-            
-            if (error.response?.message) {
-                errorMessage = error.response.message
-            } else if (error.response?.status === 409) {
-                errorMessage = 'Email hoặc tên đăng nhập đã tồn tại'
-            }
+            let errorMessage = error.response.data.message
             
             return {
                 success: false,
@@ -79,10 +65,6 @@ export default {
           }
         }
       },
-    // async register(credentials) {
-    //     const response = await api.post('/auth/register', credentials)
-    //     return response.data
-    // },
     async fetchCurrentUser() {
         try {
             const response = await api.get('/users/me')

@@ -3,13 +3,28 @@ import { ref, computed } from "vue";
 import authService from "../services/auth.js";
 
 export const useAuthStore = defineStore("auth", () => {
-  // State
-  const accessToken = ref(null)
-  const user = ref(null)
+  // State - Khởi tạo từ localStorage
+  const accessToken = ref(localStorage.getItem('accessToken') || null)
+  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
   const isLoading = ref(false)
 
   // Getters
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
+
+  // Helper function để persist state
+  const persistAuthState = (token, userData) => {
+    accessToken.value = token
+    user.value = userData
+    localStorage.setItem('accessToken', token || '')
+    localStorage.setItem('user', JSON.stringify(userData || null))
+  }
+
+  const clearAuthState = () => {
+    accessToken.value = null
+    user.value = null
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('user')
+  }
 
   // Actions
   async function login(credentials) {
@@ -19,9 +34,7 @@ export const useAuthStore = defineStore("auth", () => {
       
       if (result.success && result.data) {
         const loginData = result.data.metadata
-        accessToken.value = loginData.accessToken;
-        console.log(accessToken.value)
-        user.value = loginData.user;
+        persistAuthState(loginData.accessToken, loginData.user)
         return { success: true };
       } else {
         return { success: false, error: result.error };
@@ -40,8 +53,7 @@ export const useAuthStore = defineStore("auth", () => {
       
       if (result.success && result.data) {
         const registerData = result.data.metadata
-        accessToken.value = registerData.accessToken;
-        user.value = registerData.user;
+        persistAuthState(registerData.accessToken, registerData.user)
         return { success: true };
       } else {
         return { success: false, error: result.error };
@@ -52,19 +64,15 @@ export const useAuthStore = defineStore("auth", () => {
       isLoading.value = false;
     }
   }
+
   async function logout() {
     isLoading.value = true;
     try {
-      const result = await authService.logout();
-      if (result.success) {
-        accessToken.value = null;
-        user.value = null;
-      }
+      await authService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      accessToken.value = null;
-      user.value = null;
+      clearAuthState()
       isLoading.value = false;
     }
   }
@@ -73,12 +81,13 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const result = await authService.processNewToken();
       if (result.success) {
-        accessToken.value = result.data.metadata.accessToken;
+        persistAuthState(result.data.metadata.accessToken, user.value)
         return result.data.metadata.accessToken;
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
+      clearAuthState()
       throw error;
     }
   }
@@ -88,7 +97,7 @@ export const useAuthStore = defineStore("auth", () => {
       const result = await authService.fetchCurrentUser()
       
       if (result.success) {
-        user.value = result.data.metadata
+        persistAuthState(accessToken.value, result.data.metadata)
         return true
       } else {
         return false
@@ -96,6 +105,11 @@ export const useAuthStore = defineStore("auth", () => {
     } catch (error) {
       return false
     }
+  }
+
+  // Kiểm tra có refresh token không (thông qua cookie)
+  const hasRefreshToken = () => {
+    return document.cookie.includes('refreshToken=')
   }
 
   return {
@@ -110,6 +124,8 @@ export const useAuthStore = defineStore("auth", () => {
     register,
     logout,
     refreshAccessToken,
-    fetchCurrentUser
+    fetchCurrentUser,
+    hasRefreshToken,
+    clearAuthState
   }
 });
