@@ -44,9 +44,10 @@
       </div>
 
       <!-- Action Buttons -->
-      <div v-show="isAdmin" class="flex-shrink-0 flex items-center space-x-2">
-        <!-- Update Button -->
+      <div v-show="shouldShowButtons" class="flex-shrink-0 flex items-center space-x-2">
+        <!-- Update Button - hiển thị cho admin (tất cả user) hoặc user hiện tại (chỉ card của mình) -->
         <button 
+          v-show="shouldShowUpdateButton"
           @click="$emit('update-user', user)"
           class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-1 shadow-sm"
         >
@@ -56,8 +57,9 @@
           <span>Update</span>
         </button>
         
-        <!-- Delete Button -->
+        <!-- Delete Button - chỉ hiển thị cho admin và không phải card của chính admin -->
         <button 
+          v-show="shouldShowDeleteButton"
           @click="$emit('delete-user', user)"
           class="cursor-pointer bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-1 shadow-sm"
         >
@@ -77,19 +79,84 @@
 <script setup>
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+
 const authStore = useAuthStore();
-const loginUser = authStore.user;
+
 const props = defineProps({
   user: {
     type: Object,
     required: true
   }
 })
+
 const emit = defineEmits(['view-profile', 'update-user', 'delete-user'])
+
+// Kiểm tra user hiện tại có phải admin không
 const isAdmin = computed(() => {
-  return loginUser.role === "admin";
+  const currentUser = authStore.user;
+  if (!currentUser || !currentUser.role) {
+    return false;
+  }
+  return currentUser.role.toLowerCase() === 'admin';
 });
-console.log(isAdmin)
+
+// Kiểm tra user hiện tại có phải chủ sở hữu card này không
+const isCurrentUser = computed(() => {
+  const currentUser = authStore.user;
+  if (!currentUser) {
+    return false;
+  }
+  
+  // Debug chi tiết
+  console.log('=== User Comparison Debug ===');
+  console.log('Current user:', currentUser);
+  console.log('Card user:', props.user);
+  
+  // So sánh theo username (case-insensitive) và email
+  const currentUsername = currentUser.username?.toLowerCase()?.trim();
+  const cardUsername = props.user.username?.toLowerCase()?.trim();
+  const currentEmail = currentUser.email?.toLowerCase()?.trim();
+  const cardEmail = props.user.email?.toLowerCase()?.trim();
+  
+  console.log(`Comparing: "${currentUsername}" vs "${cardUsername}"`);
+  console.log(`Email: "${currentEmail}" vs "${cardEmail}"`);
+  
+  const usernameMatch = currentUsername && cardUsername && currentUsername === cardUsername;
+  const emailMatch = currentEmail && cardEmail && currentEmail === cardEmail;
+  
+  console.log('Username match:', usernameMatch);
+  console.log('Email match:', emailMatch);
+  
+  const isMatch = usernameMatch || emailMatch;
+  console.log('Final result:', isMatch);
+  console.log('=== End Debug ===');
+  
+  return isMatch;
+});
+
+// Logic hiển thị các button
+const shouldShowButtons = computed(() => {
+  // Nếu là admin: hiển thị button cho tất cả card
+  if (isAdmin.value) {
+    console.log(`Admin view for ${props.user.fullname}: showing buttons`);
+    return true;
+  }
+  
+  // Nếu không phải admin: chỉ hiển thị button cho card của chính mình
+  const shouldShow = isCurrentUser.value;
+  console.log(`User view for ${props.user.fullname}: isCurrentUser=${isCurrentUser.value}, showing=${shouldShow}`);
+  return shouldShow;
+});
+
+const shouldShowUpdateButton = computed(() => {
+  return shouldShowButtons.value;
+});
+
+const shouldShowDeleteButton = computed(() => {
+  // Chỉ admin mới thấy nút delete và không phải card của chính admin
+  return isAdmin.value && !isCurrentUser.value;
+});
+
 const getInitials = (fullname) => {
   if (!fullname) return '?'
   return fullname
@@ -99,6 +166,7 @@ const getInitials = (fullname) => {
     .toUpperCase()
     .slice(0, 2)
 }
+
 const getRoleBadgeClass = (role) => {
   const roleClasses = {
     'admin': 'bg-red-100 text-red-800',

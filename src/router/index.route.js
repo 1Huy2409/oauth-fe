@@ -4,7 +4,7 @@ import Login from '../pages/shared/Login.vue'
 import Register from '../pages/shared/Register.vue'
 import Profile from '../pages/client/Profile.vue'
 import AuthCallback from '../pages/shared/AuthCallback.vue'
-import Dashboard from '../pages/shared/Dashboard.vue'
+import ListUser from '../pages/shared/ListUser.vue'
 
 const routes = [
   { 
@@ -26,14 +26,14 @@ const routes = [
     meta: { requiresAuth: true }   
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard', 
-    component: Dashboard,
+    path: '/users',
+    name: 'ListUser', 
+    component: ListUser,
     meta: { requiresAuth: true }
   },
   {
     path: '/',
-    redirect: '/dashboard'
+    redirect: '/users'
   },
   {
     path: '/auth/callback',
@@ -71,7 +71,7 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.meta.requiresGuest) {
     if (authStore.isAuthenticated) {
-      return next({ name: 'Dashboard' })
+      return next({ name: 'ListUser' })
     }
     
     if (authStore.hasRefreshToken()) {
@@ -79,7 +79,7 @@ router.beforeEach(async (to, from, next) => {
         await authStore.refreshAccessToken()
         await authStore.fetchCurrentUser()
         if (authStore.isAuthenticated) {
-          return next({ name: 'Dashboard' })
+          return next({ name: 'ListUser' })
         }
       } catch (error) {
         authStore.clearAuthState()

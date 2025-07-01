@@ -78,7 +78,7 @@ const handleSubmit = async () => {
     })
 
     if (result.success) {
-      const redirectPath = router.currentRoute.value.query.redirect || '/dashboard'
+      const redirectPath = router.currentRoute.value.query.redirect || '/users'
       router.push(redirectPath)
     } else {
       errors.value.general = result.error || 'Login failed'

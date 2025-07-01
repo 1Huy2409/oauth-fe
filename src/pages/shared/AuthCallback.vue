@@ -61,7 +61,7 @@
       
       // Redirect to profile
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push('/users')
       }, 1000)
       
     } catch (err) {
