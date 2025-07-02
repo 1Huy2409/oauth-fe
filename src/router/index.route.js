@@ -2,10 +2,12 @@ import { createWebHistory, createRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import Login from '../pages/shared/Login.vue'
 import Register from '../pages/shared/Register.vue'
-import Profile from '../pages/client/Profile.vue'
 import AuthCallback from '../pages/shared/AuthCallback.vue'
 import ListUser from '../pages/shared/ListUser.vue'
-
+import ForgotPassword from '../pages/shared/ForgotPassword.vue'
+import ConfirmOtp from '../pages/shared/ConfirmOtp.vue'
+import SendMail from '../pages/shared/SendMail.vue'
+import ResetPassword from '../pages/shared/ResetPassword.vue'
 const routes = [
   { 
     path: '/login', 
@@ -18,12 +20,6 @@ const routes = [
     name: 'Register',
     component: Register, 
     meta: { requiresGuest: true } 
-  },
-  { 
-    path: '/profile', 
-    name: 'Profile',
-    component: Profile, 
-    meta: { requiresAuth: true }   
   },
   {
     path: '/users',
@@ -38,7 +34,30 @@ const routes = [
   {
     path: '/auth/callback',
     name: 'AuthCallback',
-    component: AuthCallback
+    component: AuthCallback,
+  },
+  {
+    path: '/password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: { requiresGuest: true },
+    children: [
+      {
+        path: 'forgot',
+        name: SendMail,
+        component: SendMail
+      },
+      {
+        path: 'otp',
+        name: ConfirmOtp,
+        component: ConfirmOtp
+      },
+      {
+        path: 'reset',
+        name: ResetPassword,
+        component: ResetPassword
+      }
+    ]
   }
 ]
 
