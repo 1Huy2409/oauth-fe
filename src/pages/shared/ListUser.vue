@@ -244,6 +244,79 @@
         </div>
       </div>
     </div>
+
+    <!-- Update User Modal -->
+    <div
+      v-if="userToUpdate"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-lg max-w-md w-full p-6">
+        <div class="flex items-center mb-4">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <svg
+              class="w-6 h-6 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">Cập nhật User</h3>
+        </div>
+        <form
+          @submit.prevent="confirmUpdate"
+          class="space-y-4"
+        >
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              Họ và tên
+            </label>
+            <input
+              v-model="updateForm.fullname"
+              class="mt-1 block w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              Tên đăng nhập
+            </label>
+            <input
+              v-model="updateForm.username"
+              class="mt-1 block w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div
+            v-if="updateError"
+            class="text-red-500 text-sm"
+          >
+            {{ updateError }}
+          </div>
+          <div class="flex space-x-3 mt-4">
+            <button
+              type="button"
+              @click="closeUpdateModal"
+              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Cập nhật
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -264,6 +337,12 @@ const isLoading = ref(false);
 const error = ref(null);
 const selectedUser = ref(null);
 const userToDelete = ref(null);
+const userToUpdate = ref(null);
+const updateForm = ref({
+  fullname: '',
+  username: '',
+});
+const updateError = ref('');
 // Watch auth state và redirect nếu không authenticated
 
 watch(
@@ -324,11 +403,53 @@ const handleViewProfile = (user) => {
 };
 
 const handleUpdateUser = (user) => {
-  // TODO: Implement update user functionality
-  console.log("Update user:", user.fullname);
-  // You can navigate to edit page or open edit modal
-  // router.push(`/users/${user.id}/edit`)
+  userToUpdate.value = { ...user }; // clone để tránh sửa trực tiếp
+  updateForm.value = {
+    fullname: user.fullname,
+    username: user.username
+  };
+  updateError.value = '';
 };
+
+const closeUpdateModal = () => {
+  userToUpdate.value = null;
+  updateError.value = '';
+};
+
+const confirmUpdate = async () => {
+  if (
+    (!updateForm.value.fullname || !updateForm.value.fullname.trim()) &&
+    (!updateForm.value.username || !updateForm.value.username.trim())
+  ) {
+    updateError.value = "Bạn phải nhập ít nhất họ tên hoặc tên đăng nhập!";
+    return;
+  }
+
+  // object to hold the data to update
+  const updateData = {};
+  if (updateForm.value.fullname && updateForm.value.fullname.trim()) {
+    updateData.fullname = updateForm.value.fullname.trim();
+  }
+  if (updateForm.value.username && updateForm.value.username.trim()) {
+    updateData.username = updateForm.value.username.trim();
+  }
+
+  if (!userToUpdate.value || !userToUpdate.value._id) {
+    updateError.value = "Thông tin người dùng không hợp lệ!";
+    return;
+  }
+
+  const result = await userService.updateUserById(userToUpdate.value._id, updateData);
+
+  if (result.success) {
+    alert("Cập nhật thành công!");
+    fetchUsers();
+    closeUpdateModal();
+  } else {
+    updateError.value = result.error || "Cập nhật thất bại!";
+  }
+};
+
 
 const handleDeleteUser = (user) => {
   userToDelete.value = user;

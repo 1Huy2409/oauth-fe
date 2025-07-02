@@ -29,6 +29,7 @@ api.interceptors.response.use(function (response) {
         try {
             await authStore.refreshAccessToken()
             const newToken = authStore.accessToken
+            console.log('New token:', newToken)
             if (newToken) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`
             return api(originalRequest)

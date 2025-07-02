@@ -47,5 +47,35 @@ export default {
         error: errorMessage
       }
     }
+  },
+  async addUser(user) {
+    try {
+      const response = await api.post("/users", user);
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      let errorMessage = error.response.data.message;
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  },
+  async updateUserById(id, data) {
+    try {
+      const response = await api.put(`/users/${id}`, data);
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      let errorMessage = error.response.data.message;
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
   }
 };
